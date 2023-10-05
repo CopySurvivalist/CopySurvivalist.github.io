@@ -1,38 +1,85 @@
-## Welcome to GitHub Pages
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Or Create Character</title>
+</head>
+<body>
+    <h2>Create</h2>
+    <form method="post" action="create.php">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <input type="submit" value="Create">
+    </form>
 
-You can use the [editor on GitHub](https://github.com/CopySurvivalist/CopySurvivalist.github.io/edit/main/index.md) to maintain and preview the content for your website in Markdown files.
+    <h2>Character Count Form</h2>
+    <form>
+        <label for="inputField">Input Field:</label>
+        <input type="text" id="inputField" name="inputField" onkeyup="showMatchingImage()">
+    </form>
 
-Git hub offers vegan options to hosting your repositories - You Can Fuck Off.
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+    <div id="imageContainer" style="display: none;">
+        <a id="imageLink" href="#" target="_blank">
+            <img id="displayedImage" alt="Image" width="650" height="600">
+        </a>
+    </div>
 
-### Markdown
+    <div id="feedbackMessage"></div>
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+    <script>
+        // Fetch image data from the server when the page loads
+        fetch('list_images.php')
+            .then(response => response.json())
+            .then(data => {
+                var imageNames = data.images;
+                var inputField = document.getElementById('inputField');
+                var imageContainer = document.getElementById('imageContainer');
+                var displayedImage = document.getElementById('displayedImage');
+                var imageLink = document.getElementById('imageLink');
+                var feedbackMessage = document.getElementById('feedbackMessage');
+                var threshold = 2; // Change this to the desired character count threshold
 
-```markdown
-Syntax highlighted code block
+                // Function to update the displayed image based on the input text
+                function updateImage() {
+                    var inputText = inputField.value.toLowerCase();
+                    feedbackMessage.textContent = ''; // Clear any previous feedback message
 
-# Header 1
-## Header 2
-### Header 3
+                    if (inputText.length >= threshold) {
+                        // Find the first matching image filename in the data
+                        var matchingImage = imageNames.find(function (imageName) {
+                            return imageName.includes(inputText);
+                        });
 
-- Bulleted
-- List
+                        if (matchingImage) {
 
-1. Numbered
-2. List
+                            // Extract the text after "$" symbol in the image name
+                            var imageNameParts = matchingImage.split('$')[1];
+                            var imageNameTextAfterDollar = imageNameParts.split('.')[0];
 
-**Bold** and _Italic_ and `Code` text
+                            // Set the source of the image to the matching image
+                            displayedImage.src = "web_images/" + matchingImage;
+                            feedbackMessage.textContent = imageNameTextAfterDollar;
+                            imageLink.href = "user_pages/" +imageNameTextAfterDollar + ".html"; // Navigate to the related HTML page
+                            imageContainer.style.display = 'block';
+                        } else {
+                            imageContainer.style.display = 'none';
+                            feedbackMessage.textContent = 'No matching image found.';
+                        }
+                    } else {
+                        imageContainer.style.display = 'none';
+                    }
+                }
 
-[Link](url) and ![Image](src)
-```
+                // Call the updateImage function when the page loads
+                updateImage();
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/CopySurvivalist/CopySurvivalist.github.io/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+                // Attach the updateImage function to the input field's keyup event
+                inputField.addEventListener('keyup', updateImage);
+            })
+            .catch(error => {
+                console.error('Error fetching image data:', error);
+                feedbackMessage.textContent = 'Error fetching image data.';
+            });
+    </script>
+</body>
+</html>
